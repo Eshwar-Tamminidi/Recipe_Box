@@ -1,0 +1,40 @@
+// Prisma schema for RecipeBox
+// Run `npx prisma migrate dev --name init` after editing
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  recipes   Recipe[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Recipe {
+  id          Int      @id @default(autoincrement())
+  name        String
+  ingredients String
+  steps       String
+  photoUrl    String?
+  cookingTime Int
+  cuisine     String   @default("Indian")
+  isFavorite  Boolean  @default(false)
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("recipes")
+}

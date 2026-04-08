@@ -1,0 +1,2 @@
+-- No-op migration.
+-- `photoUrl` is already introduced in `20260408095640_add_users_and_recipe_ownership`.
