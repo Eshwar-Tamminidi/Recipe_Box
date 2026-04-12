@@ -1,4 +1,5 @@
 import {
+  Box,
   Checkbox,
   FormControl,
   FormControlLabel,
@@ -8,8 +9,11 @@ import {
   MenuItem,
   Select,
   TextField,
+  Typography,
 } from '@mui/material';
+import RestaurantMenuRoundedIcon from '@mui/icons-material/RestaurantMenuRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
 import { CUISINES } from '../constants';
 import { RecipeFilter } from '../types';
 
@@ -25,10 +29,18 @@ export default function RecipeFilters({ filter, onChange }: RecipeFiltersProps) 
         <FormControl fullWidth>
           <InputLabel>Cuisine</InputLabel>
           <Select value={filter.cuisine} label="Cuisine" onChange={(event) => onChange('cuisine', event.target.value)}>
-            <MenuItem value="">All</MenuItem>
+            <MenuItem value="">
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.8 }}>
+                <RestaurantMenuRoundedIcon fontSize="small" />
+                <span>All</span>
+              </Box>
+            </MenuItem>
             {CUISINES.map((cuisine) => (
               <MenuItem key={cuisine} value={cuisine}>
-                {cuisine}
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.8 }}>
+                  <RestaurantMenuRoundedIcon fontSize="small" />
+                  <span>{cuisine}</span>
+                </Box>
               </MenuItem>
             ))}
           </Select>
@@ -55,7 +67,12 @@ export default function RecipeFilters({ filter, onChange }: RecipeFiltersProps) 
       <Grid item xs={12} md={3}>
         <FormControlLabel
           control={<Checkbox checked={filter.favorite} onChange={(event) => onChange('favorite', event.target.checked)} color="error" />}
-          label="Favorites"
+          label={
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6 }}>
+              <FavoriteRoundedIcon fontSize="small" color="error" />
+              <Typography variant="body2">Favorites</Typography>
+            </Box>
+          }
         />
       </Grid>
     </Grid>

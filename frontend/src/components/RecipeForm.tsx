@@ -19,8 +19,14 @@ import {
 import { SelectChangeEvent } from '@mui/material/Select';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import LibraryAddRoundedIcon from '@mui/icons-material/LibraryAddRounded';
+import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded';
 import LocalDiningRoundedIcon from '@mui/icons-material/LocalDiningRounded';
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded';
+import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import { CUISINES, DEFAULT_CUISINE } from '../constants';
 import { Recipe, RecipeFormData } from '../types';
 import { glassPanelSx } from '../utils/glassPanel';
@@ -213,7 +219,7 @@ export default function RecipeForm({ onSave, editing, onCancel, busy }: RecipeFo
                 <input hidden accept=".jpg,.jpeg,.png,.webp" type="file" onChange={handlePhotoUpload} />
               </Button>
               {form.photoUrl && (
-                <Button color="error" variant="text" onClick={handleRemovePhoto} disabled={busy}>
+                <Button color="error" variant="text" startIcon={<DeleteOutlineRoundedIcon />} onClick={handleRemovePhoto} disabled={busy}>
                   Remove Photo
                 </Button>
               )}
@@ -257,6 +263,13 @@ export default function RecipeForm({ onSave, editing, onCancel, busy }: RecipeFo
               multiline
               minRows={2}
               placeholder="Example: 2 tomatoes, olive oil, basil"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <ListAltRoundedIcon fontSize="small" color="action" />
+                  </InputAdornment>
+                ),
+              }}
             />
           </Grid>
 
@@ -271,16 +284,28 @@ export default function RecipeForm({ onSave, editing, onCancel, busy }: RecipeFo
               multiline
               minRows={3}
               placeholder="Describe the method in clear steps"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <MenuBookRoundedIcon fontSize="small" color="action" />
+                  </InputAdornment>
+                ),
+              }}
             />
           </Grid>
 
           <Grid item xs={12}>
             <Stack direction="row" spacing={1.5}>
-              <Button type="submit" variant="contained" disabled={busy}>
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={editing ? <SaveRoundedIcon /> : <LibraryAddRoundedIcon />}
+                disabled={busy}
+              >
                 {editing ? 'Save Changes' : 'Add Recipe'}
               </Button>
               {editing && (
-                <Button variant="outlined" onClick={onCancel} disabled={busy}>
+                <Button variant="outlined" startIcon={<CancelRoundedIcon />} onClick={onCancel} disabled={busy}>
                   Cancel
                 </Button>
               )}

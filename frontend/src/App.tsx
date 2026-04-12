@@ -3,8 +3,12 @@ import axios from 'axios';
 import {
   Alert,
   Box,
+  Button,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
   Divider,
   Grid,
   Pagination,
@@ -14,12 +18,16 @@ import {
 } from '@mui/material';
 import FilterAltRoundedIcon from '@mui/icons-material/FilterAltRounded';
 import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
+import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded';
+import LocalDiningRoundedIcon from '@mui/icons-material/LocalDiningRounded';
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
 import RestaurantMenuRoundedIcon from '@mui/icons-material/RestaurantMenuRounded';
 
 import ConfirmDialog from './ConfirmDialog';
 import Notification from './Notification';
 import AuthCard from './components/AuthCard';
 import RecipeCard from './components/RecipeCard';
+import RecipeAssistant from './components/RecipeAssistant';
 import RecipeFilters from './components/RecipeFilters';
 import RecipeForm from './components/RecipeForm';
 import RecipeHeader from './components/RecipeHeader';
@@ -62,6 +70,7 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
   const [recipesPage, setRecipesPage] = useState<number>(1);
   const [favoritesPage, setFavoritesPage] = useState<number>(1);
   const [deletingRecipe, setDeletingRecipe] = useState<Recipe | null>(null);
+  const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
   const [toast, setToast] = useState<ToastState>({ open: false, severity: 'success', message: '' });
 
   const debouncedSearch = useDebouncedValue<string>(filter.search, 320);
@@ -294,6 +303,24 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
     }
   };
 
+  const handleAddFromAssistant = async (data: RecipeFormData): Promise<void> => {
+    if (!authHeaders) {
+      notify('error', 'Please login to add recipes.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await axios.post(RECIPES_API_URL, data, { headers: authHeaders });
+      notify('success', `${data.name} added to recipes.`);
+      await fetchRecipes();
+    } catch (error) {
+      notify('error', `Could not add recipe from assistant. ${getErrorMessage(error)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -305,7 +332,13 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
             : 'radial-gradient(circle at 14% 15%, rgba(106, 189, 248, 0.32) 0%, rgba(106, 189, 248, 0) 32%), radial-gradient(circle at 82% 10%, rgba(118, 232, 208, 0.25) 0%, rgba(118, 232, 208, 0) 30%), linear-gradient(120deg, #f4fbff 0%, #e9f4fb 45%, #e4f1fa 100%)',
       }}
     >
-      <Container maxWidth="lg">
+      <Container
+        maxWidth={false}
+        sx={{
+          width: '100%',
+          px: { xs: 1, sm: 2, md: 3, lg: 4 },
+        }}
+      >
         {!authReady ? (
           <Stack alignItems="center" justifyContent="center" sx={{ minHeight: '78vh' }}>
             <CircularProgress />
@@ -364,6 +397,7 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
                             onDelete={setDeletingRecipe}
                             onToggleFavorite={handleToggleFavorite}
                             busy={saving}
+                            onView={setViewingRecipe}
                           />
                         ))}
                       </Stack>
@@ -401,18 +435,21 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
               </Alert>
             ) : (
               <>
-                <Stack spacing={1.8}>
+                <Grid container spacing={1.8}>
                   {(activeView === 'recipes' ? paginatedRecipes : paginatedFavorites).map((recipe) => (
-                    <RecipeCard
-                      key={recipe.id}
-                      recipe={recipe}
-                      onEdit={handleEditRequest}
-                      onDelete={setDeletingRecipe}
-                      onToggleFavorite={handleToggleFavorite}
-                      busy={saving}
-                    />
+                    <Grid item xs={12} sm={6} md={4} key={recipe.id}>
+                      <RecipeCard
+                        recipe={recipe}
+                        onEdit={handleEditRequest}
+                        onDelete={setDeletingRecipe}
+                        onToggleFavorite={handleToggleFavorite}
+                        busy={saving}
+                        layout="top"
+                        onView={setViewingRecipe}
+                      />
+                    </Grid>
                   ))}
-                </Stack>
+                </Grid>
                 <Stack alignItems="center" sx={{ mt: 2.5 }}>
                   <Pagination
                     color="primary"
@@ -441,12 +478,131 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
         onConfirm={() => void handleDeleteConfirm()}
       />
 
+      <Dialog
+        open={Boolean(viewingRecipe)}
+        onClose={() => setViewingRecipe(null)}
+        maxWidth="sm"
+        fullWidth
+        scroll="paper"
+        PaperProps={{
+          sx: {
+            overflow: 'hidden',
+          },
+        }}
+      >
+        <DialogContent
+          dividers
+          sx={{
+            p: 0,
+            backgroundColor: 'background.paper',
+            maxHeight: '72vh',
+            overflowY: 'auto',
+          }}
+        >
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 1,
+              backgroundColor: 'background.paper',
+              borderBottom: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? '1px solid rgba(166, 210, 245, 0.24)'
+                  : '1px solid rgba(40, 111, 163, 0.18)',
+            }}
+          >
+            {viewingRecipe?.photoUrl ? (
+              <Box
+                component="img"
+                src={viewingRecipe.photoUrl}
+                alt={`${viewingRecipe.name} recipe`}
+                sx={{
+                  width: '100%',
+                  height: { xs: 220, sm: 280 },
+                  objectFit: 'cover',
+                }}
+              />
+            ) : (
+              <Stack
+                alignItems="center"
+                justifyContent="center"
+                spacing={0.8}
+                sx={{
+                  width: '100%',
+                  height: { xs: 220, sm: 280 },
+                  background: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? 'linear-gradient(145deg, rgba(11, 30, 48, 0.75), rgba(9, 23, 37, 0.62))'
+                      : 'linear-gradient(145deg, rgba(244, 251, 255, 0.95), rgba(225, 240, 250, 0.88))',
+                }}
+              >
+                <LocalDiningRoundedIcon color="primary" />
+                <Typography variant="body2" color="text.secondary">
+                  Recipe Image
+                </Typography>
+              </Stack>
+            )}
+          </Box>
+
+          <Box sx={{ p: 2.5 }}>
+            <Typography variant="h6" fontWeight={700} sx={{ mb: 1.2 }}>
+              {viewingRecipe?.name}
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap' }}>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                Cuisine:
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mr: 1.5 }}>
+                {viewingRecipe?.cuisine}
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                Cooking Time:
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {viewingRecipe?.cookingTime} min
+              </Typography>
+            </Stack>
+
+            <Typography
+              variant="body1"
+              color="text.primary"
+              sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mb: 1.2 }}
+            >
+              <ListAltRoundedIcon fontSize="small" sx={{ mt: '3px', color: '#8dc9f2' }} />
+              <span>
+                <strong>Ingredients:</strong> {viewingRecipe?.ingredients}
+              </span>
+            </Typography>
+
+            <Typography
+              variant="body1"
+              color="text.primary"
+              sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}
+            >
+              <MenuBookRoundedIcon fontSize="small" sx={{ mt: '3px', color: '#8dc9f2' }} />
+              <span>
+                <strong>Steps:</strong> {viewingRecipe?.steps}
+              </span>
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setViewingRecipe(null)} variant="contained">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Notification
         open={toast.open}
         onClose={() => setToast((prev) => ({ ...prev, open: false }))}
         severity={toast.severity}
         message={toast.message}
       />
+
+      {currentUser && authToken ? (
+        <RecipeAssistant authHeaders={authHeaders} onAddRecipe={handleAddFromAssistant} />
+      ) : null}
     </Box>
   );
 }

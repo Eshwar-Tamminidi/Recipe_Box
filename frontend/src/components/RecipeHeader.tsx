@@ -33,7 +33,18 @@ export default function RecipeHeader({
   const initial = userName?.trim()?.charAt(0)?.toUpperCase() || 'U';
 
   return (
-    <Paper elevation={0} sx={{ p: { xs: 1.5, md: 2 }, mb: 2, borderRadius: 4, ...glassPanelSx() }}>
+    <Paper
+      elevation={0}
+      sx={{
+        p: { xs: 1.5, md: 2 },
+        mb: 2,
+        borderRadius: 4,
+        position: 'sticky',
+        top: { xs: 8, md: 12 },
+        zIndex: 1200,
+        ...glassPanelSx(),
+      }}
+    >
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={1.5}
