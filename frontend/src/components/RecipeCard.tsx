@@ -60,9 +60,9 @@ export default function RecipeCard({
     >
       <Box
         sx={{
-          p: 1.5,
+          p: { xs: 1.2, sm: 1.5 },
           display: 'flex',
-          flexDirection: isTopLayout ? 'column' : 'row',
+          flexDirection: isTopLayout ? 'column' : { xs: 'column', sm: 'row' },
           alignItems: 'stretch',
           gap: 1.5,
           flex: 1,
@@ -70,10 +70,10 @@ export default function RecipeCard({
       >
         <Box
           sx={{
-            width: isTopLayout ? '100%' : { xs: 96, sm: 132, md: 150 },
-            minWidth: isTopLayout ? '100%' : { xs: 96, sm: 132, md: 150 },
-            height: isTopLayout ? { xs: 170, sm: 200 } : 'auto',
-            minHeight: isTopLayout ? { xs: 170, sm: 200 } : { xs: 96, sm: 132, md: 150 },
+            width: isTopLayout ? '100%' : { xs: '100%', sm: 132, md: 150 },
+            minWidth: isTopLayout ? '100%' : { xs: '100%', sm: 132, md: 150 },
+            height: isTopLayout ? { xs: 170, sm: 200 } : { xs: 160, sm: 'auto' },
+            minHeight: isTopLayout ? { xs: 170, sm: 200 } : { xs: 160, sm: 132, md: 150 },
             borderRadius: 2,
             overflow: 'hidden',
             border: (theme) =>
@@ -87,7 +87,7 @@ export default function RecipeCard({
             display: 'grid',
             placeItems: 'center',
             position: 'relative',
-            order: isTopLayout ? 0 : 1,
+            order: isTopLayout ? 0 : { xs: 0, sm: 1 },
             '&:hover .view-overlay': {
               opacity: onView ? 1 : 0,
             },
@@ -102,7 +102,7 @@ export default function RecipeCard({
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                minHeight: isTopLayout ? { xs: 170, sm: 200 } : { xs: 96, sm: 132, md: 150 },
+                minHeight: isTopLayout ? { xs: 170, sm: 200 } : { xs: 160, sm: 132, md: 150 },
               }}
             />
           ) : (
@@ -133,9 +133,15 @@ export default function RecipeCard({
           ) : null}
         </Box>
 
-        <CardContent sx={{ p: 0, flex: 1, '&:last-child': { pb: 0 }, order: isTopLayout ? 1 : 0 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ mb: 1.2 }}>
-            <Typography variant="h6" fontWeight={700}>
+        <CardContent sx={{ p: 0, flex: 1, '&:last-child': { pb: 0 }, order: isTopLayout ? 1 : { xs: 1, sm: 0 } }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            justifyContent="space-between"
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            spacing={1}
+            sx={{ mb: 1.2 }}
+          >
+            <Typography variant="h6" fontWeight={700} sx={{ overflowWrap: 'anywhere' }}>
               {recipe.name}
             </Typography>
             {recipe.isFavorite && <Chip label="Favorite" color="error" size="small" />}
@@ -161,7 +167,7 @@ export default function RecipeCard({
         </CardContent>
       </Box>
 
-      <CardActions sx={{ px: 2, pb: 2 }}>
+      <CardActions sx={{ px: { xs: 1.2, sm: 2 }, pb: { xs: 1.2, sm: 2 }, flexWrap: 'wrap', rowGap: 0.5 }}>
         <IconButton
           onClick={() => void onToggleFavorite(recipe)}
           color={recipe.isFavorite ? 'error' : 'default'}

@@ -295,7 +295,15 @@ export default function RecipeForm({ onSave, editing, onCancel, busy }: RecipeFo
           </Grid>
 
           <Grid item xs={12}>
-            <Stack direction="row" spacing={1.5}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1.5}
+              sx={{
+                '& .MuiButton-root': {
+                  width: { xs: '100%', sm: 'auto' },
+                },
+              }}
+            >
               <Button
                 type="submit"
                 variant="contained"

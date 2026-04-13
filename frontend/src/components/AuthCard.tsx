@@ -13,6 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import { alpha, keyframes, useTheme } from '@mui/material/styles';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 import PersonAddAlt1RoundedIcon from '@mui/icons-material/PersonAddAlt1Rounded';
 import SoupKitchenRoundedIcon from '@mui/icons-material/SoupKitchenRounded';
@@ -79,11 +80,11 @@ interface AuthCardProps {
   onSignup: (name: string, email: string, password: string) => Promise<void>;
 }
 
-type AuthMode = 'login' | 'signup';
+type AuthMode = 'intro' | 'login' | 'signup';
 
 export default function AuthCard({ busy, error, onLogin, onSignup }: AuthCardProps) {
   const theme = useTheme();
-  const [mode, setMode] = useState<AuthMode>('login');
+  const [mode, setMode] = useState<AuthMode>('intro');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -105,15 +106,22 @@ export default function AuthCard({ busy, error, onLogin, onSignup }: AuthCardPro
 
   const isDark = theme.palette.mode === 'dark';
 
+  const chooseMode = (nextMode: Exclude<AuthMode, 'intro'>) => {
+    setMode(nextMode);
+    setPassword('');
+    setConfirmPassword('');
+  };
+
   return (
     <Box
       sx={{
-        minHeight: '82vh',
+        minHeight: mode === 'intro' ? { xs: 'calc(100vh - 24px)', md: 'calc(100vh - 40px)' } : { xs: 'auto', md: '82vh' },
         display: 'grid',
-        placeItems: 'center',
-        px: { xs: 0.5, sm: 1 },
+        placeItems: { xs: 'start center', md: 'center' },
+        px: { xs: 0, sm: 1 },
+        py: mode === 'intro' ? 0 : { xs: 1, md: 0 },
         position: 'relative',
-        overflow: 'hidden',
+        overflow: mode === 'intro' ? 'visible' : 'hidden',
       }}
     >
       <Box
@@ -123,6 +131,7 @@ export default function AuthCard({ busy, error, onLogin, onSignup }: AuthCardPro
           inset: 0,
           pointerEvents: 'none',
           zIndex: 0,
+          display: { xs: 'none', sm: 'block' },
         }}
       >
         <Box
@@ -252,12 +261,21 @@ export default function AuthCard({ busy, error, onLogin, onSignup }: AuthCardPro
         elevation={0}
         sx={{
           width: '100%',
-          maxWidth: 980,
-          borderRadius: 6,
+          maxWidth: mode === 'intro' ? 'none' : 980,
+          minHeight: mode === 'intro' ? 'inherit' : 'auto',
+          borderRadius: mode === 'intro' ? 0 : { xs: 3, sm: 6 },
           overflow: 'hidden',
           position: 'relative',
           zIndex: 1,
-          ...glassPanelSx(),
+          ...(mode === 'intro'
+            ? {
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                backdropFilter: 'none',
+                WebkitBackdropFilter: 'none',
+              }
+            : glassPanelSx()),
         }}
       >
         <Box
@@ -265,30 +283,128 @@ export default function AuthCard({ busy, error, onLogin, onSignup }: AuthCardPro
             position: 'absolute',
             inset: 0,
             pointerEvents: 'none',
-            background: isDark
-              ? 'radial-gradient(circle at 12% 10%, rgba(123, 209, 255, 0.22) 0%, rgba(123, 209, 255, 0) 35%), radial-gradient(circle at 80% 75%, rgba(118, 232, 208, 0.2) 0%, rgba(118, 232, 208, 0) 40%)'
-              : 'radial-gradient(circle at 14% 12%, rgba(23, 105, 170, 0.16) 0%, rgba(23, 105, 170, 0) 36%), radial-gradient(circle at 84% 80%, rgba(14, 164, 126, 0.16) 0%, rgba(14, 164, 126, 0) 38%)',
+            background:
+              mode === 'intro'
+                ? 'transparent'
+                : isDark
+                  ? 'radial-gradient(circle at 12% 10%, rgba(123, 209, 255, 0.22) 0%, rgba(123, 209, 255, 0) 35%), radial-gradient(circle at 80% 75%, rgba(118, 232, 208, 0.2) 0%, rgba(118, 232, 208, 0) 40%)'
+                  : 'radial-gradient(circle at 14% 12%, rgba(23, 105, 170, 0.16) 0%, rgba(23, 105, 170, 0) 36%), radial-gradient(circle at 84% 80%, rgba(14, 164, 126, 0.16) 0%, rgba(14, 164, 126, 0) 38%)',
           }}
         />
 
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1.05fr 1fr' },
-            position: 'relative',
-            zIndex: 1,
-            animation: 'authCardSlideIn 520ms ease-out',
-            '@keyframes authCardSlideIn': {
-              from: { opacity: 0, transform: 'translateY(16px) scale(0.985)' },
-              to: { opacity: 1, transform: 'translateY(0) scale(1)' },
-            },
-          }}
-        >
+        {mode === 'intro' ? (
           <Box
             sx={{
+              minHeight: 'inherit',
+              display: 'grid',
+              alignItems: 'center',
+              position: 'relative',
+              zIndex: 1,
+              p: { xs: 1.2, sm: 4, md: 5 },
+              animation: 'authCardSlideIn 520ms ease-out',
+              '@keyframes authCardSlideIn': {
+                from: { opacity: 0, transform: 'translateY(16px) scale(0.985)' },
+                to: { opacity: 1, transform: 'translateY(0) scale(1)' },
+              },
+            }}
+          >
+            <Stack spacing={{ xs: 2.2, sm: 2.8 }} sx={{ maxWidth: 760 }}>
+              <Stack direction="row" spacing={1.2} alignItems="center">
+                <Box
+                  sx={{
+                    width: { xs: 46, sm: 54 },
+                    height: { xs: 46, sm: 54 },
+                    borderRadius: '50%',
+                    display: 'grid',
+                    placeItems: 'center',
+                    background: alpha(theme.palette.primary.main, isDark ? 0.28 : 0.16),
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
+                    flex: '0 0 auto',
+                  }}
+                >
+                  <SoupKitchenRoundedIcon color="primary" />
+                </Box>
+                <Box>
+                  <Typography variant="h5" fontWeight={800}>
+                    RecipeBox
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Your personal kitchen companion
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Box>
+                <Typography
+                  variant="h4"
+                  fontWeight={800}
+                  sx={{ mb: 1, fontSize: { xs: '2.25rem', sm: '3rem', md: '3.6rem' }, lineHeight: 1.03 }}
+                >
+                  Save recipes, favorites, and kitchen ideas in one place.
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, fontSize: { xs: '1rem', md: '1.08rem' } }}>
+                  Keep your dishes organized, filter what you need, and come back to every favorite meal quickly.
+                </Typography>
+              </Box>
+
+              <Stack spacing={1.2}>
+                <Stack direction="row" spacing={1.1} alignItems="center">
+                  <VerifiedRoundedIcon color="primary" fontSize="small" />
+                  <Typography variant="body2">Private recipes for each account</Typography>
+                </Stack>
+                <Stack direction="row" spacing={1.1} alignItems="center">
+                  <FavoriteRoundedIcon color="error" fontSize="small" />
+                  <Typography variant="body2">Favorites and photos stay easy to find</Typography>
+                </Stack>
+                <Stack direction="row" spacing={1.1} alignItems="center">
+                  <AutoAwesomeRoundedIcon color="secondary" fontSize="small" />
+                  <Typography variant="body2">Simple tools for building your recipe box</Typography>
+                </Stack>
+              </Stack>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={<LoginRoundedIcon />}
+                  onClick={() => chooseMode('login')}
+                  sx={{ minHeight: 48 }}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  startIcon={<PersonAddAlt1RoundedIcon />}
+                  onClick={() => chooseMode('signup')}
+                  sx={{ minHeight: 48 }}
+                >
+                  Sign Up
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1.05fr 1fr' },
+              position: 'relative',
+              zIndex: 1,
+              animation: 'authCardSlideIn 520ms ease-out',
+              '@keyframes authCardSlideIn': {
+                from: { opacity: 0, transform: 'translateY(16px) scale(0.985)' },
+                to: { opacity: 1, transform: 'translateY(0) scale(1)' },
+              },
+            }}
+          >
+          <Box
+            sx={{
+              display: { xs: 'none', sm: 'block' },
+              order: { sm: 2, md: 2 },
               p: { xs: 3, sm: 4 },
-              borderBottom: { xs: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`, md: 'none' },
-              borderRight: { md: `1px solid ${alpha(theme.palette.primary.main, 0.2)}` },
+              borderTop: { sm: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`, md: 'none' },
+              borderLeft: { md: `1px solid ${alpha(theme.palette.primary.main, 0.2)}` },
               background: isDark
                 ? 'linear-gradient(145deg, rgba(14, 40, 65, 0.8), rgba(10, 26, 43, 0.56))'
                 : 'linear-gradient(145deg, rgba(246, 252, 255, 0.88), rgba(230, 244, 255, 0.7))',
@@ -343,20 +459,88 @@ export default function AuthCard({ busy, error, onLogin, onSignup }: AuthCardPro
             </Stack>
           </Box>
 
-          <Box sx={{ p: { xs: 3, sm: 4 } }}>
-            <Typography variant="h5" fontWeight={800} sx={{ mb: 0.5 }}>
-              {mode === 'login' ? 'Welcome back' : 'Create your account'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2.2 }}>
-              {mode === 'login'
-                ? 'Login to continue managing your recipes.'
-                : 'Sign up to start building your personal recipe collection.'}
-            </Typography>
+          <Box sx={{ p: { xs: 2, sm: 4 }, display: { xs: 'flex', sm: 'block' }, flexDirection: 'column', order: { xs: 1, sm: 1, md: 1 } }}>
+            <Button
+              variant="text"
+              size="small"
+              startIcon={<ArrowBackRoundedIcon />}
+              onClick={() => setMode('intro')}
+              sx={{ mb: { xs: 1, sm: 1.5 }, px: 0, alignSelf: { xs: 'flex-start', sm: 'auto' }, order: { xs: 0, sm: 'initial' } }}
+            >
+              Back
+            </Button>
+            <Box sx={{ order: { xs: 3, sm: 'initial' }, mt: { xs: 2.2, sm: 0 } }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: 'flex', sm: 'none' }, mb: 1.4 }}>
+                <Box
+                  sx={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: '50%',
+                    display: 'grid',
+                    placeItems: 'center',
+                    background: alpha(theme.palette.primary.main, isDark ? 0.28 : 0.16),
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
+                    flex: '0 0 auto',
+                  }}
+                >
+                  <SoupKitchenRoundedIcon color="primary" fontSize="small" />
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.05 }}>
+                    RecipeBox
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                  Your personal kitchen companion
+                </Typography>
+              </Box>
+            </Stack>
+
+              <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+                <Typography variant="h6" fontWeight={700} sx={{ mb: 1.1 }}>
+                  Cook smarter, save everything
+                </Typography>
+
+                <Stack spacing={1}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <VerifiedRoundedIcon color="primary" fontSize="small" />
+                    <Typography variant="body2">Secure login and private recipes for each account</Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <FavoriteRoundedIcon color="error" fontSize="small" />
+                    <Typography variant="body2">Save favorite dishes and access them instantly</Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <AutoAwesomeRoundedIcon color="secondary" fontSize="small" />
+                    <Typography variant="body2">Beautiful recipe tracking with photos and filters</Typography>
+                  </Stack>
+                </Stack>
+              </Box>
+
+              <Typography
+                variant="h5"
+                fontWeight={800}
+                sx={{ mb: 0.5, fontSize: { xs: '1.45rem', sm: '1.5rem' }, display: { xs: 'none', sm: 'block' } }}
+              >
+                {mode === 'login' ? 'Welcome back' : 'Create your account'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: { xs: 0, sm: 2.2 }, display: { xs: 'none', sm: 'block' } }}>
+                {mode === 'login'
+                  ? 'Login to continue managing your recipes.'
+                  : 'Sign up to start building your personal recipe collection.'}
+              </Typography>
+            </Box>
 
             <Tabs
               value={mode}
               onChange={(_, next) => setMode(next)}
-              sx={{ mb: 2.2 }}
+              sx={{
+                mb: { xs: 1.6, sm: 2.2 },
+                minHeight: { xs: 42, sm: 48 },
+                order: { xs: 1, sm: 'initial' },
+                '& .MuiTab-root': {
+                  minHeight: { xs: 42, sm: 48 },
+                },
+              }}
               variant="fullWidth"
             >
               <Tab value="login" label="Login" icon={<LoginRoundedIcon fontSize="small" />} iconPosition="start" />
@@ -368,8 +552,8 @@ export default function AuthCard({ busy, error, onLogin, onSignup }: AuthCardPro
               />
             </Tabs>
 
-            <Box component="form" onSubmit={handleSubmit}>
-              <Stack spacing={1.6}>
+            <Box component="form" onSubmit={handleSubmit} sx={{ order: { xs: 2, sm: 'initial' } }}>
+              <Stack spacing={{ xs: 1.25, sm: 1.6 }}>
                 {mode === 'signup' && (
                   <TextField
                     label="Full Name"
@@ -410,7 +594,7 @@ export default function AuthCard({ busy, error, onLogin, onSignup }: AuthCardPro
                   onChange={(event) => setPassword(event.target.value)}
                   required
                   inputProps={{ minLength: 6 }}
-                  helperText={mode === 'signup' ? 'Use at least 6 characters.' : ' '}
+                  helperText={mode === 'signup' ? 'Use at least 6 characters.' : undefined}
                   fullWidth
                   InputProps={{
                     startAdornment: (
@@ -478,6 +662,7 @@ export default function AuthCard({ busy, error, onLogin, onSignup }: AuthCardPro
                   variant="contained"
                   size="large"
                   disabled={busy || (mode === 'signup' && password !== confirmPassword)}
+                  sx={{ mt: { xs: 0.4, sm: 0 }, minHeight: 46 }}
                 >
                   {mode === 'login' ? 'Login' : 'Create Account'}
                 </Button>
@@ -485,6 +670,7 @@ export default function AuthCard({ busy, error, onLogin, onSignup }: AuthCardPro
             </Box>
           </Box>
         </Box>
+        )}
       </Paper>
     </Box>
   );

@@ -1,12 +1,15 @@
-import { Box, Paper, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
+import { Box, Divider, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
 import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import LibraryAddRoundedIcon from '@mui/icons-material/LibraryAddRounded';
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import RestaurantMenuRoundedIcon from '@mui/icons-material/RestaurantMenuRounded';
 import { AppThemeMode } from '../theme';
 import { glassPanelSx } from '../utils/glassPanel';
@@ -20,6 +23,7 @@ interface RecipeHeaderProps {
   onToggleTheme: () => void;
   userName: string;
   onLogout: () => void;
+  onAddRecipe: () => void;
 }
 
 export default function RecipeHeader({
@@ -29,8 +33,32 @@ export default function RecipeHeader({
   onToggleTheme,
   userName,
   onLogout,
+  onAddRecipe,
 }: RecipeHeaderProps) {
   const initial = userName?.trim()?.charAt(0)?.toUpperCase() || 'U';
+  const [mobileMenuAnchor, setMobileMenuAnchor] = useState<null | HTMLElement>(null);
+  const isMobileMenuOpen = Boolean(mobileMenuAnchor);
+
+  const closeMobileMenu = () => setMobileMenuAnchor(null);
+  const changeMobileView = (view: ViewMode) => {
+    onChangeView(view);
+    closeMobileMenu();
+  };
+
+  const toggleThemeFromMenu = () => {
+    onToggleTheme();
+    closeMobileMenu();
+  };
+
+  const logoutFromMenu = () => {
+    onLogout();
+    closeMobileMenu();
+  };
+
+  const addRecipeFromMenu = () => {
+    onAddRecipe();
+    closeMobileMenu();
+  };
 
   return (
     <Paper
@@ -46,40 +74,132 @@ export default function RecipeHeader({
       }}
     >
       <Stack
-        direction={{ xs: 'column', md: 'row' }}
+        direction="row"
         spacing={1.5}
-        alignItems={{ xs: 'flex-start', md: 'center' }}
+        alignItems="center"
         justifyContent="space-between"
       >
-        <Box>
-          <Stack direction="row" alignItems="center" spacing={1.2}>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 1.2 }}>
             <Box
               sx={{
-                width: 42,
-                height: 42,
+                width: { xs: 38, md: 42 },
+                height: { xs: 38, md: 42 },
+                flex: '0 0 auto',
                 borderRadius: '50%',
                 display: 'grid',
                 placeItems: 'center',
                 background: 'linear-gradient(135deg, rgba(123, 209, 255, 0.35), rgba(118, 232, 208, 0.2))',
                 border: '1px solid rgba(166, 210, 245, 0.35)',
                 fontWeight: 800,
-                fontSize: 18,
+                fontSize: { xs: 16, md: 18 },
               }}
             >
               {initial}
             </Box>
-            <Box>
-              <Typography variant="h4" fontWeight={800} sx={{ lineHeight: 1.1 }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                variant="h4"
+                fontWeight={800}
+                sx={{
+                  lineHeight: 1.1,
+                  fontSize: { xs: '1.25rem', sm: '1.6rem', md: '2.125rem' },
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 RecipeBox Pro
               </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.35 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  display: 'block',
+                  mt: 0.35,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: { xs: '52vw', sm: '65vw', md: 'none' },
+                }}
+              >
                 Welcome back, {userName}
               </Typography>
             </Box>
           </Stack>
         </Box>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ width: { xs: '100%', md: 'auto' } }}>
+        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <IconButton
+            aria-label="open menu"
+            aria-controls={isMobileMenuOpen ? 'mobile-header-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={isMobileMenuOpen ? 'true' : undefined}
+            onClick={(event) => setMobileMenuAnchor(event.currentTarget)}
+            color="primary"
+            sx={{
+              border: '1px solid',
+              borderColor: 'divider',
+              width: 40,
+              height: 40,
+            }}
+          >
+            <MenuRoundedIcon />
+          </IconButton>
+          <Menu
+            id="mobile-header-menu"
+            anchorEl={mobileMenuAnchor}
+            open={isMobileMenuOpen}
+            onClose={closeMobileMenu}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            PaperProps={{
+              sx: {
+                mt: 1,
+                minWidth: 220,
+                borderRadius: 2,
+              },
+            }}
+          >
+            <MenuItem selected={activeView === 'home'} onClick={() => changeMobileView('home')}>
+              <ListItemIcon>
+                <HomeRoundedIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Home</ListItemText>
+            </MenuItem>
+            <MenuItem selected={activeView === 'recipes'} onClick={() => changeMobileView('recipes')}>
+              <ListItemIcon>
+                <RestaurantMenuRoundedIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Recipes</ListItemText>
+            </MenuItem>
+            <MenuItem selected={activeView === 'favorites'} onClick={() => changeMobileView('favorites')}>
+              <ListItemIcon>
+                <FavoriteRoundedIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Favorites</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={addRecipeFromMenu}>
+              <ListItemIcon>
+                <LibraryAddRoundedIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Add Recipe</ListItemText>
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={toggleThemeFromMenu}>
+              <ListItemIcon>
+                {themeMode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
+              </ListItemIcon>
+              <ListItemText>{themeMode === 'dark' ? 'Light theme' : 'Dark theme'}</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={logoutFromMenu}>
+              <ListItemIcon>
+                <LogoutRoundedIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Logout</ListItemText>
+            </MenuItem>
+          </Menu>
+        </Box>
+
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ display: { xs: 'none', md: 'flex' }, width: 'auto' }}>
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
             <Button
               startIcon={<HomeRoundedIcon />}

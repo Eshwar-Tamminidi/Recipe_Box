@@ -64,6 +64,7 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
   const [filter, setFilter] = useState<RecipeFilter>({ cuisine: '', search: '', favorite: false });
   const [activeView, setActiveView] = useState<ViewMode>('home');
   const [editing, setEditing] = useState<Recipe | null>(null);
+  const [showMobileRecipeForm, setShowMobileRecipeForm] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [homePage, setHomePage] = useState<number>(1);
@@ -108,11 +109,12 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
     [authToken]
   );
 
-  const handleAuthSuccess = (payload: AuthResponse) => {
+  const handleAuthSuccess = (payload: AuthResponse, message: string) => {
     setAuthToken(payload.token);
     setCurrentUser(payload.user);
     setAuthError('');
     window.localStorage.setItem(AUTH_TOKEN_KEY, payload.token);
+    notify('success', message);
   };
 
   const handleLogin = async (email: string, password: string) => {
@@ -120,9 +122,11 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
     setAuthError('');
     try {
       const response = await axios.post<AuthResponse>(`${AUTH_API_URL}/login`, { email, password });
-      handleAuthSuccess(response.data);
+      handleAuthSuccess(response.data, 'Signin successful.');
     } catch (error) {
-      setAuthError(getErrorMessage(error));
+      const message = getErrorMessage(error) || 'Invalid credentials.';
+      setAuthError(message);
+      notify('error', `Signin failed. ${message}`);
     } finally {
       setAuthBusy(false);
     }
@@ -133,9 +137,11 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
     setAuthError('');
     try {
       const response = await axios.post<AuthResponse>(`${AUTH_API_URL}/signup`, { name, email, password });
-      handleAuthSuccess(response.data);
+      handleAuthSuccess(response.data, 'Signup successful.');
     } catch (error) {
-      setAuthError(getErrorMessage(error));
+      const message = getErrorMessage(error) || 'Please check your signup details.';
+      setAuthError(message);
+      notify('error', `Signup failed. ${message}`);
     } finally {
       setAuthBusy(false);
     }
@@ -146,6 +152,7 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
     setAuthToken(null);
     setRecipes([]);
     setEditing(null);
+    setShowMobileRecipeForm(false);
     setDeletingRecipe(null);
     window.localStorage.removeItem(AUTH_TOKEN_KEY);
   };
@@ -224,8 +231,21 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
     setFilter((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleChangeView = (view: ViewMode) => {
+    setActiveView(view);
+    setEditing(null);
+    setShowMobileRecipeForm(false);
+  };
+
   const handleEditRequest = (recipe: Recipe) => {
     setEditing(recipe);
+    setShowMobileRecipeForm(true);
+    setActiveView('home');
+  };
+
+  const handleAddRecipeRequest = () => {
+    setEditing(null);
+    setShowMobileRecipeForm(true);
     setActiveView('home');
   };
 
@@ -248,6 +268,7 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
       } else {
         await axios.post(RECIPES_API_URL, data, { headers: authHeaders });
         notify('success', 'Recipe added successfully.');
+        setShowMobileRecipeForm(false);
       }
       await fetchRecipes();
       return true;
@@ -354,21 +375,38 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
           <>
         <RecipeHeader
           activeView={activeView}
-          onChangeView={setActiveView}
+          onChangeView={handleChangeView}
           themeMode={themeMode}
           onToggleTheme={onToggleTheme}
           userName={currentUser.name}
           onLogout={handleLogout}
+          onAddRecipe={handleAddRecipeRequest}
         />
         {activeView === 'home' ? (
           <>
-            <Grid container spacing={2.5}>
-              <Grid item xs={12} lg={5}>
-                <RecipeForm onSave={handleSave} editing={editing} onCancel={() => setEditing(null)} busy={saving} />
+            <Grid container spacing={{ xs: 1.5, md: 2.5 }}>
+              <Grid
+                item
+                xs={12}
+                lg={5}
+                sx={{
+                  display: { xs: editing || showMobileRecipeForm ? 'block' : 'none', lg: 'block' },
+                  order: { xs: editing || showMobileRecipeForm ? 1 : 2, lg: 1 },
+                }}
+              >
+                <RecipeForm
+                  onSave={handleSave}
+                  editing={editing}
+                  onCancel={() => {
+                    setEditing(null);
+                    setShowMobileRecipeForm(false);
+                  }}
+                  busy={saving}
+                />
               </Grid>
 
-              <Grid item xs={12} lg={7}>
-                <Paper elevation={0} sx={{ p: 2.5, borderRadius: 4, ...glassPanelSx() }}>
+              <Grid item xs={12} lg={7} sx={{ order: { xs: editing || showMobileRecipeForm ? 2 : 1, lg: 2 } }}>
+                <Paper elevation={0} sx={{ p: { xs: 1.5, md: 2.5 }, borderRadius: 4, ...glassPanelSx() }}>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
                     <FilterAltRoundedIcon color="primary" />
                     <Typography variant="h6" fontWeight={700}>
@@ -417,7 +455,7 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
             </Grid>
           </>
         ) : (
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 4, ...glassPanelSx() }}>
+          <Paper elevation={0} sx={{ p: { xs: 1.5, md: 2.5 }, borderRadius: 4, ...glassPanelSx() }}>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
               {activeView === 'recipes' ? <RestaurantMenuRoundedIcon color="primary" /> : <FavoriteRoundedIcon color="error" />}
               <Typography variant="h6" fontWeight={700}>
@@ -435,7 +473,7 @@ export default function App({ themeMode, onToggleTheme }: AppProps) {
               </Alert>
             ) : (
               <>
-                <Grid container spacing={1.8}>
+                <Grid container spacing={{ xs: 1.5, md: 1.8 }}>
                   {(activeView === 'recipes' ? paginatedRecipes : paginatedFavorites).map((recipe) => (
                     <Grid item xs={12} sm={6} md={4} key={recipe.id}>
                       <RecipeCard
